@@ -135,8 +135,8 @@ router.post('/signupgoodreads', function(req, res) {
 
       });
       
-          res.json({success: true, msg: 'Welcome in the member area ' + user.name + '!'});  
-    },
+      res.json({success: true, token: 'JWT ' + token});
+    }),
 
 router.post('/signupfacebook', function(req, res) {
     if (!req.body.name || !req.body.password) {
