@@ -116,26 +116,29 @@ router.put('/updatefacebookId', passport.authenticate('jwt', { session: false}),
 })
 
 router.post('/signupgoodreads', function(req, res) {
-    var newUser = new User({
-      goodreads_id: req.body.goodreads_id
-    });
-
- User.findOne({
+  var newUser = new User({
+    goodreads_id: req.body.goodreads_id
+  });
+  var token;
+  
+  User.findOne({
       goodreads_id: req.body.goodreads_id
     }, function(err, user) {
-      var token;
         if (err) throw err;
         if (!user) {
           newUser.save(function(err) {
              if (err) return res.status(403).send({success: false, msg: 'unable to save user'});
                token = jwt.encode(newUser, config.secret);
+               res.json({success: true, token: 'JWT ' + token});
           });
         }
-        else  token = jwt.encode(user, config.secret);
+        else 
+        {token = jwt.encode(user, config.secret);
+        res.json({success: true, token: 'JWT ' + token});
+        }
 
       });
       
-      res.json({success: true, token: 'JWT ' + token});
     }),
 
 router.post('/signupfacebook', function(req, res) {
