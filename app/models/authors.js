@@ -5,7 +5,7 @@ var AuthorSchema = new mongoose.Schema({
     blurb : String,
     img : String,
     link: String,
-    avg_rating: Nuber,
+    avg_rating: Number,
     ratings_count: Number,
     review_count: Number,
     notified : Boolean,
