@@ -4,6 +4,8 @@ var bodyParser  = require('body-parser');
 var morgan      = require('morgan');
 var mongoose    = require('mongoose');
 var passport	  = require('passport');
+var bodyParser = require('body-parser');
+
 
 // get db config file
 var config      = require('./config/database'); 
@@ -18,8 +20,8 @@ var port 	      = process.env.PORT || 8081;
 
 // get our request parameters
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb'}));
 // log to console
 app.use(morgan('dev'));
 
