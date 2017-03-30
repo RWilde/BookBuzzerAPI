@@ -7,14 +7,14 @@ var config = require('../../config/database');
 
 var mongoose = require('mongoose');
 var Buzzlist = require('../models/buzzlist');
-var book = require('../models/books');
+var BookModel = require('../models/books');
 var User = require('../models/user');
 var helper = require('../functions/helper.js');
-var Author = require('../models/authors'); // get the mongoose model
+var AuthorModel = require('../models/authors'); // get the mongoose model
 var bodyParser = require('body-parser');
 
-router.use(bodyParser.json({limit: '50mb'}));
-router.use(bodyParser.urlencoded({limit: '50mb'}));
+router.use(bodyParser.json({ limit: '50mb' }));
+router.use(bodyParser.urlencoded({ limit: '50mb' }));
 
 //testing get all lists
 router.get('/', function (req, res, next) {
@@ -60,12 +60,102 @@ router.post('/newbook', passport.authenticate('jwt', { session: false }), functi
 router.post('/shelfimport', passport.authenticate('jwt', { session: false }), function (req, res) {
   var token = helper.getToken(req.headers);
   var decoded = jwt.decode(token, config.secret);
-  //var data = req.body;
-  
-//var reqBody = req.request.body.toString();
-//reqBody = JSON.parse(reqBody);
 
-console.log(req.body);
+  var authorArray = [];
+  var bookArray = [];
+
+  var shelves = req.body;
+//  console.log(shelves.length)
+  for (var shelfName in shelves) {
+    //console.log(shelfName)
+    var shelf = shelves[shelfName];
+    var bookObjectIdArray = [];
+    for (var book in shelf) {
+      var authorObjectIdArray = [];
+      // var json = JSON.parse(book);
+   //   console.log(shelf[book])
+
+      for (var author in shelf[book].authors) {
+        authorId = helper.generateObjectId();
+        newAuthor = helper.returnNewAuthorObjectFromJson(shelf[book].authors[author], authorId);
+        authorObjectIdArray.push(authorId);
+        authorArray.push(newAuthor);
+       // console.log(shelf[book].authors[author])
+      //  console.log("--------------------------------------------")
+      }
+      bookId = helper.generateObjectId();
+      book = helper.returnNewBookObjectFromJSON(book, authorObjectIdArray, bookId)
+      bookArray.push(book);
+      bookObjectIdArray.push(bookId);
+    }
+
+
+    User.findOne({ _id: decoded._id }, function (err, data) {
+      if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
+      if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
+
+      Buzzlist.findOne({ user: decoded._id, list_name: shelfName }, function (err, list_post) {
+        if (err) return res.status(403).send({ success: false, msg: 'error with finding list' });
+        AuthorModel.insertMany(authorArray,  function (err, mongooseDocuments) {
+          if (err) console.log(err);
+          BookModel.insertMany(bookArray, function (err, mongooseDocuments) {
+
+            if (!list_post) {
+              list = helper.returnBuzzListObjectFromJson(shelfName, decoded._id, bookObjectIdArray);
+              list.save(function (error, new_list_data) {
+               if (error) console.log(error);
+              })
+            }
+            else 
+            {
+              list_post.update({ $push: { 'book_list': bookObjectIdArray } }, function (err, data) {
+                if (err) console.log(err);
+              })
+            }
+          });
+        });
+      })
+
+    });
+  }
+
+
+
+
+
+
+  // console.log(shelf);
+
+  //   //shelfJSON = JSON.parse(shelf)
+  //   console.log(Object.value(shelf).length)
+  //   for( var i=0; i<Object.valuekeys(shelf).length; i++ ){
+  //     console.log("here")
+  //     console.log(shelf[i])
+  //     console.log("___________________________________________________")
+  //     //product[i].brand
+  //     //product[i].price
+  //   }
+
+
+  // var obj = req.body;
+  // var keysArray = Object.keys(obj);
+  // for (var i = 0; i < keysArray.length; i++) {
+  //    var key = keysArray[i]; // here is "name" of object property
+  //    var value = obj[key]; // here get value "by name" as it expected with objects
+  //    console.log(value);
+  //    console.log(value.length)
+  // }
+
+
+
+  // here get value "by name" as it expected with objects
+
+
+  //var data = req.body;
+
+  //var reqBody = req.request.body.toString();
+  //reqBody = JSON.parse(reqBody);
+
 
   // User.findOne({ _id: decoded._id }, function (err, data) {
   //   if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });

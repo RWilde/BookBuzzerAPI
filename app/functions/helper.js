@@ -53,6 +53,23 @@ var _this = module.exports = {
             });
     },
 
+    returnNewAuthorObjectFromJson: function (req, objectId) {
+        return new Author(
+            {
+                _id: objectId,
+                name: req.name,
+                blurb: null,
+                img: req.img_url,
+                link: req.link,
+                avg_rating: req.avg_rating,
+                ratings_count: req.ratings_count,
+                review_count: req.txt_reviews_count,
+                notified: false,
+                update_at: { type: Date, default: Date.now },
+                goodreads_id: req.id
+            })
+    },
+
     returnAuthorObjectFromJson: function (fName, sName, blurb, notified, goodreads, objectId) {
         return new Author(
             {
@@ -90,6 +107,33 @@ var _this = module.exports = {
         });
     },
 
+    returnNewBookObjectFromJSON: function (req, authorArray, objectId) {
+        return new Book({
+            _id: objectId,
+            name: req.title,
+            blurb: req.description,
+            release_date : req.date,
+            notified: false,
+            price_drop: false,
+            author_id: req.authorArray,
+            work_id: req.id,
+            isbn: req.isbn,
+            isbn13: req.isbn13,
+            text_reviews_count: req.txt_reviews_count,
+            title: req.title,
+            title_without_name: req.title_without_series,
+            image_url: req.img_url,
+            small_img: req.sml_img_url,
+            link: req.link,
+            format: req.format,
+            edition_info: req.edition,
+            publisher: req.publisher,
+            avg_rating: req.avg_rating,
+            ratings_count: req.ratings_counts,
+            yearPublished: req.yearPublished
+        });
+    },
+
     returnEmptyBuzzListObject: function (req, token) {
         return new buzzlist({
             list_name: req.body.list_name,
@@ -102,6 +146,15 @@ var _this = module.exports = {
     returnBuzzListObject: function (req, token, bookArray) {
         return new buzzlist({
             list_name: req.body.list_name,
+            book_list: bookArray,
+            user: token
+        })
+
+    },
+
+        returnBuzzListObjectFromJson: function (req, token, bookArray) {
+        return new buzzlist({
+            list_name: req,
             book_list: bookArray,
             user: token
         })
@@ -282,9 +335,9 @@ var _this = module.exports = {
         User.findOne({ _id: id }, function (err, data) {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-console.log(listId)
+            console.log(listId)
             buzzlist.update({ _id: listId }, { list_name: name }, function (err) {
-                if (err) return res.status(403).send({ success: false, msg: 'unable to change list name'});
+                if (err) return res.status(403).send({ success: false, msg: 'unable to change list name' });
                 res.json({ success: true, msg: 'book name successfully changed' });
             });
         });

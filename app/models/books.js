@@ -3,7 +3,7 @@ var mongoose = require('mongoose')
 var Books = new mongoose.Schema({
     name : String,
     blurb : String,
-    //release_date : { type: Date, default : Date.now },
+    release_date : String,
     notified : Boolean,
     price_drop : Boolean,
     author_id : [{type: mongoose.Schema.Types.ObjectId, ref: 'Author'}],
