@@ -7,14 +7,16 @@ var config = require('../../config/database');
 
 var mongoose = require('mongoose');
 var Buzzlist = require('../models/buzzlist');
-var BookModel = require('../models/books');
+var Book = require('../models/books');
 var User = require('../models/user');
 var helper = require('../functions/helper.js');
-var AuthorModel = require('../models/authors'); // get the mongoose model
+var Author = require('../models/authors'); // get the mongoose model
 var bodyParser = require('body-parser');
 
 router.use(bodyParser.json({ limit: '50mb' }));
 router.use(bodyParser.urlencoded({ limit: '50mb' }));
+
+
 
 //testing get all lists
 router.get('/', function (req, res, next) {
@@ -70,24 +72,27 @@ router.post('/shelfimport', passport.authenticate('jwt', { session: false }), fu
     //console.log(shelfName)
     var shelf = shelves[shelfName];
     var bookObjectIdArray = [];
-    for (var book in shelf) {
+    for (var bookShelf in shelf) {
       var authorObjectIdArray = [];
       // var json = JSON.parse(book);
    //   console.log(shelf[book])
 
-      for (var author in shelf[book].authors) {
+      for (var authorBook in shelf[bookShelf].authors) {
         authorId = helper.generateObjectId();
-        newAuthor = helper.returnNewAuthorObjectFromJson(shelf[book].authors[author], authorId);
+        newAuthor = helper.returnNewAuthorObjectFromJson(shelf[bookShelf].authors[authorBook], authorId);
         authorObjectIdArray.push(authorId);
         authorArray.push(newAuthor);
        // console.log(shelf[book].authors[author])
       //  console.log("--------------------------------------------")
       }
       bookId = helper.generateObjectId();
-      book = helper.returnNewBookObjectFromJSON(book, authorObjectIdArray, bookId)
-      bookArray.push(book);
+      newBook = helper.returnNewBookObjectFromJSON(bookShelf, authorObjectIdArray, bookId)
+      bookArray.push(newBook);
       bookObjectIdArray.push(bookId);
     }
+
+    console.log(bookArray.length);
+    console.log(authorArray.length);
 
 
     User.findOne({ _id: decoded._id }, function (err, data) {
@@ -96,9 +101,11 @@ router.post('/shelfimport', passport.authenticate('jwt', { session: false }), fu
 
       Buzzlist.findOne({ user: decoded._id, list_name: shelfName }, function (err, list_post) {
         if (err) return res.status(403).send({ success: false, msg: 'error with finding list' });
-        AuthorModel.insertMany(authorArray,  function (err, mongooseDocuments) {
+
+        Author.collection.insert(authorArray, {continueOnError: true, safe: true},  function (err, mongooseDocuments) {
           if (err) console.log(err);
-          BookModel.insertMany(bookArray, function (err, mongooseDocuments) {
+          Book.collection.insert(bookArray , {continueOnError: true, safe: true}, function (err, mongooseDocuments) {
+          if (err) console.log(err);
 
             if (!list_post) {
               list = helper.returnBuzzListObjectFromJson(shelfName, decoded._id, bookObjectIdArray);
