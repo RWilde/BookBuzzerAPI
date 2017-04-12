@@ -200,11 +200,11 @@ router.delete('/:id', passport.authenticate('jwt', { session: false }), function
 })
 
 //delete book from existing booklist w token
-router.delete('/book/:buzzlistid/:bookid', passport.authenticate('jwt', { session: false }), function (req, res) {
+router.delete('/book/:buzzlistid/:book', passport.authenticate('jwt', { session: false }), function (req, res) {
   var token = helper.getToken(req.headers);
   var decoded = jwt.decode(token, config.secret);
 
-  helper.findBuzzlistAndRemoveBook(decoded._id, req.params.buzzlistid, req.params.bookid, res)
+  helper.findBuzzlistAndRemoveBook(decoded._id, req.params.buzzlistid, req.params.book, res)
 })
 
 module.exports = router;
