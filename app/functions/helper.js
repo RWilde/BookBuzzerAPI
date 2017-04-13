@@ -307,15 +307,24 @@ var _this = module.exports = {
         })
     },
 
-    findBuzzlistAndRemoveBook: function (id, buzzlistId, book, res) {
+    findBuzzlistAndRemoveBook: function (id, buzzlist, book, res) {
         User.findOne({ _id: id }, function (err, data) {
+            //finds user
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-            Book.findOne({ work_id: book.work_id }, function (err, book_post) {
-                buzzlist.update({ _id: book_post._id }, { $pull: { "book_list": { book_id: bookId } } }, function (err) {
+            Book.findOne({ work_id: book }, function (err, book_post) {
+                //finds book using goodreads id
+                if (err) res.json({ success: true, msg: 'book didnt exist' });
+
+                    if (book_post != null){
+                    //updates buzzlist searching with list name and user token
+                    buzzlist.update({ list_name: buzzlist, user: id }, { $pull: { "book_list": { book_id: book_post._id } } }, function (err) {
                     if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
                     res.json({ success: true, msg: 'book successfully deleted' });
                 });
+                    
+            }
+            res.json({ success: true, msg: 'book didnt exist' });
             });
         });
     },
