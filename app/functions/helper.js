@@ -4,6 +4,7 @@ var User = require('../models/user'); // get the mongoose model
 var Author = require('../models/authors'); // get the mongoose model
 var Book = require('../models/books'); // get the mongoose model
 var buzzlist = require('../models/buzzlist'); // get the mongoose model
+var watch = require('../models/watch'); // get the mongoose model
 
 var _this = module.exports = {
 
@@ -112,10 +113,10 @@ var _this = module.exports = {
             _id: objectId,
             name: req.title,
             blurb: req.description,
-            release_date : req.date,
+            release_date: req.date,
             notified: false,
             price_drop: false,
-            author_id: req.authorArray,
+            author_id: authorArray,
             work_id: req.id,
             isbn: req.isbn,
             isbn13: req.isbn13,
@@ -152,15 +153,29 @@ var _this = module.exports = {
 
     },
 
-        returnBuzzListObjectFromJson: function (req, token, bookArray) {
+    returnBuzzListObjectFromJson: function (req, book, token) {
         return new buzzlist({
             list_name: req,
-            book_list: bookArray,
+            book_list: book,
             user: token
         })
 
     },
 
+    returnNotificationObjectFromJson: function (req, token, bookArray) {
+        return new buzzlist({
+            list_name: req,
+            book_list: bookArray,
+            user: token
+        })
+    },
+
+    returnWatchObjectFromJson: function (req, token) {
+        return new watch({
+            list_name: req,
+            user: token
+        })
+    },
 
     getBookIfExists: function (req, res, authorId) {
         objectId = _this.generateObjectId();
@@ -260,13 +275,13 @@ var _this = module.exports = {
             if (err) return res.status(403).send({ success: false, msg: 'problem finding book' });
 
             //book doesnt exist, creates new book/author and adds to list
-            if (!book_post) _this.createBookAndAddToList(book);
+            if (!book_post) _this.createBookAndAddToList(book, list._id);
             //book does exist, uses book id to add to list
             else _this.updateBuzzlistWithNewBookId(list._id, book_post.id);
         });
     },
 
-    createBookAndAddToList: function (book) {
+    createBookAndAddToList: function (book, list_id) {
         var bookId = _this.generateObjectId();
         var name = book.name;
         var blurb = book.blurb;
@@ -294,13 +309,13 @@ var _this = module.exports = {
             newBook = _this.returnBookObjectFromJSON(name, blurb, notified, price_drop, work_id, bookId, authorId);
             newBook.save(function (error, data) {
                 if (error) return res.status(403).send({ success: false, msg: 'can not save book' });
-                _this.updateBuzzlistWithNewBookId(list._id, data._id)
+                _this.updateBuzzlistWithNewBookId(list_id, data._id)
 
             })
         });
     },
 
-    updateBuzzlistWithNewBookId: function (id, bookId) {
+    updateBuzzlistWithNewBookId: function (id, bookId, res) {
         var book_id = { book_id: bookId };
         buzzlist.update({ _id: id }, { $push: { 'book_list': book_id } }, function (err, data) {
             if (err) return res.status(403).send({ success: false, msg: 'can not update buzzlist with new book' });
@@ -316,15 +331,15 @@ var _this = module.exports = {
                 //finds book using goodreads id
                 if (err) res.json({ success: true, msg: 'book didnt exist' });
 
-                    if (book_post != null){
+                if (book_post != null) {
                     //updates buzzlist searching with list name and user token
                     buzzlist.update({ list_name: buzzlist, user: id }, { $pull: { "book_list": { book_id: book_post._id } } }, function (err) {
-                    if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
-                    res.json({ success: true, msg: 'book successfully deleted' });
-                });
-                    
-            }
-            res.json({ success: true, msg: 'book didnt exist' });
+                        if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
+                        res.json({ success: true, msg: 'book successfully deleted' });
+                    });
+
+                }
+                res.json({ success: true, msg: 'book didnt exist' });
             });
         });
     },
@@ -351,6 +366,41 @@ var _this = module.exports = {
                 res.json({ success: true, msg: 'book name successfully changed' });
             });
         });
+    },
+
+    saveNewWatch: function (book_id, id, res) {
+        newWatch = _this.returnWatchObjectFromJson(book_id, id);
+        newWatch.book_list.push(book_id);
+        console.log(newWatch)
+        newWatch.save(function (error, new_list_data) {
+            if (error) console.log("9" + error);
+            res.json({ success: true });
+        })
+    },
+
+    updateWatch: function (book, id, res) {
+        watch.update({ _id: id }, { $push: { 'book_list': book } }, function (err, data) {
+            if (err) console.log("6" + err)
+            res.json({ success: true });
+        })
+    },
+
+    removeBookFromWatchList: function (decoded, bookId, res) {
+        User.findOne({ _id: decoded._id }, function (err, data) {
+            //finds user
+            if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
+            if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
+
+console.log(decoded._id +" "+ bookId)
+            watch.findOneAndUpdate({ user: decoded._id }, { $pull: { "book_list": bookId } }, function (err) {
+                if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
+                res.json({ success: true });
+
+            });
+
+        });
     }
 
 }
+
+//currently not removing from watch table whjen you click again

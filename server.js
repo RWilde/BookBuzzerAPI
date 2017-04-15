@@ -6,7 +6,6 @@ var mongoose    = require('mongoose');
 var passport	  = require('passport');
 var bodyParser = require('body-parser');
 
-
 // get db config file
 var config      = require('./config/database'); 
 
@@ -15,6 +14,7 @@ var userRoute = require('./app/routes/user');
 var bookRoute   = require('./app/routes/book');
 var authorRoute = require('./app/routes/author');
 var buzzRoute   = require('./app/routes/buzzlist');
+var watchRoute   = require('./app/routes/watch');
 
 var port 	      = process.env.PORT || 8081;
 
@@ -38,17 +38,7 @@ app.use('/api/users', userRoute);
 app.use('/api/books', bookRoute);
 app.use('/api/authors', authorRoute);
 app.use('/api/buzzlist', buzzRoute);
-
-//var https = require('https');
-//var fs = require('fs');
-
-// var options = {
-//   key: fs.readFileSync('./config/key.pem'),
-//   cert: fs.readFileSync('./config/key-cert.pem')
-// };
-
-
-// https.createServer(options, app).listen(8080);
+app.use('/api/watch', watchRoute);
 
 // Start the server
 app.listen(port);

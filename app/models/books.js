@@ -6,7 +6,7 @@ var Books = new mongoose.Schema({
     release_date : String,
     notified : Boolean,
     price_drop : Boolean,
-    author_id : [{type: mongoose.Schema.Types.ObjectId, ref: 'Author'}],
+    author : [{type: Number, Unique: true}],
     update_at : { type: Date, default : Date.now },
     work_id: {type: Number, 
         unique: true,

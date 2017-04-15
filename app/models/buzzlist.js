@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 
 var BuzzListSchema = new mongoose.Schema({
     list_name : String,
-    book_list : [{ book_id: {type: mongoose.Schema.Types.ObjectId, ref: 'books'}}],
+    book_list : [{type: Number, Unique: true}],
     user : [{type: mongoose.Schema.Types.ObjectId, ref : 'User'}]
     
 })
