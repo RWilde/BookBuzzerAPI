@@ -52,25 +52,36 @@ router.post('/book', function (req, res, next) {
 
                         if (list_post != null) {
                             var found = false;
+                            var deleted = false;
                             for (var i = 0; i < list_post.book_list.length; i++) {
-                                console.log(list_post.book_list[i])
+                                console.log("56");
 
                                 if (list_post.book_list[i] == req.body.id) {
                                     //remove book from watchlist
+                                    console.log("60");
                                     helper.removeBookFromWatchList(decoded, req.body.id, res)
                                     found = true;
+                                    deleted = true;
                                     break;
                                 }
                             }
+                            console.log("66" + found);
+
                             if (found == false) {
                                 var book_id = { book_id: list_post._id };
                                 Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
                                     if (err) console.log("4" + err);
+                                    console.log("70");
                                     helper.updateWatch(req.body.id, decoded._id, res);
                                 })
                             }
+                            else if (deleted == false) {
+                                helper.updateWatch(req.body.id, decoded._id, res);
+                            }
                         }
                         else {
+                            console.log("78");
+
                             buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                             buzz.book_list.push(req.body.id);
                             buzz.save(function (error, buzzlist_data) {
@@ -81,6 +92,8 @@ router.post('/book', function (req, res, next) {
                     })
                 }
                 else {
+                    console.log("90");
+
                     var authorObjectIdArray = [];
                     var authorArray = []
                     bookId = helper.generateObjectId();
@@ -102,22 +115,36 @@ router.post('/book', function (req, res, next) {
                             Buzzlist.findOne({ user: decoded._id, list_name: req.body.list_name }, function (err, list_post) {
                                 if (err) console.log("8" + err)
                                 if (list_post != null) {
+                                    console.log("113");
+
                                     var found = false;
+                                    var deleted = false;
                                     for (var i = 0; i < list_post.book_list.length; i++) {
                                         console.log(list_post.book_list[i])
                                         if (list_post.book_list[i] == req.body.id) {
                                             //remove book from watchlist
                                             helper.removeBookFromWatchList(decoded, req.body.id, res)
                                             found = true;
+                                            deleted = true;
                                             break;
+                                            console.log("123");
+
                                         }
                                     }
-                                    if (found == false) {
+                                    if (found === false) {
+                                        console.log("128");
+
                                         var book_id = { book_id: list_post._id };
                                         Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
                                             if (err) console.log("4" + err);
+                                            console.log("131");
+
                                             helper.updateWatch(req.body.id, decoded._id, res);
                                         })
+
+                                    }
+                                    else if (deleted == false) {
+                                        helper.updateWatch(req.body.id, decoded._id, res);
                                     }
 
                                 }
@@ -125,6 +152,8 @@ router.post('/book', function (req, res, next) {
                                     buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                                     buzz.book_list.push(req.body.id);
                                     console.log(buzz)
+                                    console.log("145");
+
                                     buzz.save(function (error, buzzlist_data) {
                                         if (error) console.log("19" + error);
                                         helper.updateWatch(req.body.id, decoded._id, res);
@@ -141,6 +170,8 @@ router.post('/book', function (req, res, next) {
                 if (err) console.log("10" + err)
                 if (book_post != null) {
                     newWatch = helper.returnWatchObjectFromJson(req.body, decoded._id)
+                    console.log("163");
+
                     newWatch.save(function (error, new_list_data) {
                         if (error) console.log("11" + error);
                         res.json({ success: true });
@@ -164,33 +195,18 @@ router.post('/book', function (req, res, next) {
                     Author.collection.insertMany(authorArray, { ordered: false, safe: true }, function (err, mongooseDocuments) {
                         var books = [];
                         books.push(newBook)
+                        console.log("188");
+
                         newBook.save(function (error, buzzlist_date) {
                             if (err) console.log("12" + err)
                             Buzzlist.findOne({ user: decoded._id, list_name: req.body.list_name }, function (err, list_post) {
                                 if (err) console.log("13" + err)
                                 if (list_post != null) {
-                                    var found = false;
-                                    for (var i = 0; i < list_post.book_list.length; i++) {
-                                        console.log(list_post.book_list[i])
-
-                                        //  console.log("book " + book)
-                                        // console.log("req.body.id " + req.body.id)
-                                        if (list_post.book_list[i] == req.body.id) {
-                                            //remove book from watchlist
-                                            helper.removeBookFromWatchList(decoded, req.body.id, res)
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                    if (found == false) {
-                                        Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
-                                            if (err) console.log("4" + err);
-                                            helper.saveNewWatch(req.body.id, decoded._id, res);
-                                        })
-                                    }
-
+                                    console.log("195");
+                                    helper.saveNewWatch(req.body.id, decoded._id, res);
                                 }
                                 else {
+                                    console.log("224");
                                     buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                                     buzz.save(function (error, buzzlist_data) {
                                         if (error) console.log("15" + error);

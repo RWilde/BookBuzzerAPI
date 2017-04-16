@@ -108,7 +108,7 @@ var _this = module.exports = {
         });
     },
 
-    returnNewBookObjectFromJSON: function (req, authorArray, objectId) {
+    returnNewBookObjectFromJSON: function (req, objectId) {
         return new Book({
             _id: objectId,
             name: req.title,
@@ -116,7 +116,6 @@ var _this = module.exports = {
             release_date: req.date,
             notified: false,
             price_drop: false,
-            author_id: authorArray,
             work_id: req.id,
             isbn: req.isbn,
             isbn13: req.isbn13,
@@ -182,12 +181,6 @@ var _this = module.exports = {
         book = _this.returnBookObject(req, objectId, authorId);
 
         book.save(function (error, data) {
-            // if (error) {
-            //     res.json(error);
-            // }
-            // else {
-            //     res.json(data);
-            // }
         });
 
         return objectId;
@@ -370,8 +363,9 @@ var _this = module.exports = {
 
     saveNewWatch: function (book_id, id, res) {
         newWatch = _this.returnWatchObjectFromJson(book_id, id);
+
         newWatch.book_list.push(book_id);
-        console.log(newWatch)
+        console.log("here 1")
         newWatch.save(function (error, new_list_data) {
             if (error) console.log("9" + error);
             res.json({ success: true });
@@ -379,8 +373,10 @@ var _this = module.exports = {
     },
 
     updateWatch: function (book, id, res) {
+        console.log("here")
         watch.update({ _id: id }, { $push: { 'book_list': book } }, function (err, data) {
             if (err) console.log("6" + err)
+            console.log(data)
             res.json({ success: true });
         })
     },
@@ -391,7 +387,7 @@ var _this = module.exports = {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
 
-console.log(decoded._id +" "+ bookId)
+            console.log(decoded._id + " " + bookId)
             watch.findOneAndUpdate({ user: decoded._id }, { $pull: { "book_list": bookId } }, function (err) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
                 res.json({ success: true });

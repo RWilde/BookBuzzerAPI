@@ -65,50 +65,51 @@ router.post('/shelfimport', passport.authenticate('jwt', { session: false }), fu
 
   var authorArray = [];
   var bookArray = [];
-
+  var name;
   var shelves = req.body;
   for (var shelfName in shelves) {
+    name = shelfName;
     var shelf = shelves[shelfName];
     var bookObjectIdArray = [];
     for (var bookShelf in shelf) {
       var authorObjectIdArray = [];
       bookId = helper.generateObjectId();
-      newBook = helper.returnNewBookObjectFromJSON(bookShelf, authorObjectIdArray, bookId)
-      bookArray.push(newBook);
+      newBook = helper.returnNewBookObjectFromJSON(shelf[bookShelf], bookId)
 
       for (var authorBook in shelf[bookShelf].authors) {
         authorId = helper.generateObjectId();
         newAuthor = helper.returnNewAuthorObjectFromJson(shelf[bookShelf].authors[authorBook], authorId);
-        authorObjectIdArray.push(authorId);
         authorArray.push(newAuthor);
-        newBook.author.push(req.body.authors[authorBook].id);
-
+        newBook.author.push(shelf[bookShelf].authors[authorBook].id);
       }
-      bookObjectIdArray.push(bookShelf.id);
+      bookObjectIdArray.push(shelf[bookShelf].id);
+      bookArray.push(newBook);
     }
+    console.log(bookObjectIdArray);
   }
 
   User.findOne({ _id: decoded._id }, function (err, data) {
     if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
     if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-
     Buzzlist.findOne({ user: decoded._id, list_name: shelfName }, function (err, list_post) {
       if (err) return res.status(403).send({ success: false, msg: 'error with finding list' });
-
-      Author.collection.insertMany(authorArray, { ordered: false, safe: true }, function (err, mongooseDocuments) {
-        if (err) console.log(err);
-        Book.collection.insertMany(bookArray, { ordered: false, safe: true }, function (err, mongooseDocuments) {
-          if (err) console.log(err);
-
-          if (!list_post) {
-            list = helper.returnBuzzListObjectFromJson(shelfName, decoded._id, bookObjectIdArray);
+      Author.collection.insertMany(authorArray, { continueOnError: true, ordered: false, safe: true }, function (err, mongooseDocuments) {
+        if (err) console.log("99" + err);
+        Book.collection.insertMany(bookArray, { continueOnError: true, ordered: false, safe: true }, function (err, mongooseDocuments) {
+          if (err) console.log("101" + err);
+          if (list_post == null) {
+            console.log("list found");
+            list = helper.returnBuzzListObjectFromJson(name, bookObjectIdArray, decoded._id);
             list.save(function (error, new_list_data) {
-              if (error) console.log(error);
+              if (err) return res.status(403).send({ success: false, msg: 'error saving list' });
+              res.json({ success: true })
             })
           }
           else {
-            list_post.update({ $push: { 'book_list': bookObjectIdArray } }, function (err, data) {
-              if (err) console.log(err);
+            console.log("not found");
+            list_post.update({'user': decoded._id, 'list_name' :name }, { $push: { 'book_list': bookObjectIdArray } }, function (err, data) {
+              if (err) return res.status(403).send({ success: false, msg: 'error updating list' });
+              res.json({ success: true })
             })
           }
         });
