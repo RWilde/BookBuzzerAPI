@@ -326,7 +326,7 @@ var _this = module.exports = {
 
                 if (book_post != null) {
                     //updates buzzlist searching with list name and user token
-                    buzzlist.update({ list_name: buzzlist, user: id }, { $pull: { "book_list": { book_id: book_post._id } } }, function (err) {
+                    buzzlist.update({ list_name: buzzlist, user: id }, { $pull: { "book_list": { book_id: book } } }, function (err) {
                         if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
                         res.json({ success: true, msg: 'book successfully deleted' });
                     });
