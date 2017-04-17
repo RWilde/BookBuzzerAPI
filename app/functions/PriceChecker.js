@@ -5,7 +5,7 @@ var cheerio = require('cheerio');
 
 // Variables
 var asin, price, pb_token;
-var amzn_url = 'http://www.amazon.com/dp/';
+var amzn_url = 'http://www.amazon.co.uk/dp/';
 var span_id = '#actualPriceValue';
 var check_interval = 60000;
 
