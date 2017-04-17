@@ -8,6 +8,7 @@ var config = require('../../config/database');
 var mongoose = require('mongoose');
 var watch = require('../models/watch'); // get the mongoose model
 var helper = require('../functions/helper.js');
+var checker = require('../functions/PriceChecker.js');
 bodyParser = require('body-parser');
 var book = require('../models/books');
 var Buzzlist = require('../models/buzzlist');
@@ -236,6 +237,22 @@ router.delete('/book/:id', function (req, res) {
 
     helper.removeBookFromWatchList(decoded, bookId, res);
 
+});
+
+//delete book
+router.get('/price/:isbn', function (req, res) {
+    var token = helper.getToken(req.headers);
+    var decoded = jwt.decode(token, config.secret);
+    var bookId = req.params.id;
+
+    var isbn = req.params.isbn
+    User.findOne({ _id: decoded._id }, function (err, data) {
+        //finds user
+        if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
+        if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
+
+        checker.runChecker(isbn);
+    })
 });
 
 module.exports = router;
