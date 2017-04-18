@@ -10,6 +10,8 @@
     "mongoose": "^4.9.2",
     "morgan": "~1.5.0",
     "passport": "^0.3.0",
-    "passport-jwt": "^1.2.1"
+    "passport-jwt": "^1.2.1",
+    "request": "*",
+    "cheerio": "*"
   }
 }

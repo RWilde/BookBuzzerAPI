@@ -4,6 +4,7 @@ var router = express.Router();
 require('../../config/passport')(passport);
 var jwt = require('jwt-simple');
 var config = require('../../config/database');
+var User = require('../models/user');
 
 var mongoose = require('mongoose');
 var watch = require('../models/watch'); // get the mongoose model
@@ -15,7 +16,7 @@ var Buzzlist = require('../models/buzzlist');
 var Author = require('../models/authors'); // get the mongoose model
 
 //get watch books
-router.get('/book', function (req, res, next) {
+router.get('/book', passport.authenticate('jwt', { session: false }), function (req, res, next) {
     var token = helper.getToken(req.headers);
     var decoded = jwt.decode(token, config.secret);
 
@@ -36,7 +37,7 @@ router.get('/book', function (req, res, next) {
 });
 
 //post new book to watch
-router.post('/book', function (req, res, next) {
+router.post('/book', passport.authenticate('jwt', { session: false }), function (req, res, next) {
     var token = helper.getToken(req.headers);
     var decoded = jwt.decode(token, config.secret);
     console.log(req.body.list_name);
@@ -240,18 +241,20 @@ router.delete('/book/:id', function (req, res) {
 });
 
 //delete book
-router.get('/price/:isbn', function (req, res) {
+router.post('/price', passport.authenticate('jwt', { session: false }), function (req, res) {
     var token = helper.getToken(req.headers);
     var decoded = jwt.decode(token, config.secret);
     var bookId = req.params.id;
 
-    var isbn = req.params.isbn
+    var isbn = req.body.isbn
+console.log(isbn)
+    var jsonArray = []
     User.findOne({ _id: decoded._id }, function (err, data) {
         //finds user
         if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
         if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
 
-        checker.runChecker(isbn);
+        checker.checkPrice(res, isbn);
     })
 });
 
