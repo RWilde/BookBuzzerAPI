@@ -224,6 +224,125 @@ var _this = module.exports = {
         });
     },
 
+    getBuzzlist: function (id) {
+        buzzlist.find({ _id: id }, function (err, post) {
+            if (err) return next(err);
+            var work_ids = []
+            var author_ids = []
+            for (var i = 0; i < post.length; i++) {
+                for (var r = 0; r < post[i].book_list.length; r++) {
+
+                    work_ids.push(post[i].book_list[r])
+                }
+            }
+            var authors = []
+            var result = []
+            Book.find({ 'work_id': { $in: work_ids } }, function (err, books) {
+                for (var t = 0; t < books.length; t++) {
+                    for (var m = 0; m < books[t].author.length; m++) {
+                        author_ids.push(books[t].author[m])
+                    }
+                }
+
+                // console.log("helloooo" + author_ids);
+                Author.find({ goodreads_id: { $in: author_ids } }, function (err, author) {
+                    if (err) console.log("err" + err)
+                    //console.log("helloooo" + author)
+                    for (var n = 0; n < author.length; n++) {
+                        // console.log("helloooo" + authors[n])
+                        authors.push(author[n]);
+                    }
+
+                    for (var i = 0; i < books.length; i++) {
+                        book = books[i]
+                        authorForBook = []
+                        for (var m = 0; m < author.length; m++) {
+                            for (var r = 0; r < author_ids.length; r++) {
+                                console.log("260" + author_ids[r])
+                                console.log("261" + author[m])
+
+                                if (author_ids[r] == author[m].goodreads_id) {
+                                    authorForBook.push(authors[m])
+                                }
+                            }
+                        }
+                        var book = _this.createBookObjectForJson(book, authorForBook)
+                        result.push(book)
+                        // console.log( authorForBook)
+
+                        // console.log("book" + book)
+                        //console.log("authors" + authorForBook)
+                    }
+                    res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(result) });
+
+                })
+
+
+            })
+
+        });
+    },
+
+    getEverything: function (lists,res, token) {
+        var work_ids = []
+        var author_ids = []
+        for (var i = 0; i < lists.length; i++) {
+            for (var r = 0; r < lists[i].book_list.length; r++) {
+
+                work_ids.push(lists[i].book_list[r])
+            }
+        }
+        var authors = []
+        var result = []
+        Book.find({ 'work_id': { $in: work_ids } }, function (err, books) {
+            for (var t = 0; t < books.length; t++) {
+                for (var m = 0; m < books[t].author.length; m++) {
+                    author_ids.push(books[t].author[m])
+                }
+            }
+                console.log("hi "+author_ids)
+
+            // console.log("helloooo" + author_ids);
+            Author.find({ goodreads_id: { $in: author_ids } }, function (err, author) {
+                if (err) console.log("err" + err)
+                console.log("here")
+                res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author) });
+            })
+        })
+       // res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists) });
+    },
+
+    createBookObjectForJson: function (book, author) {
+        return new Object(
+            {
+                name: book.name,
+                blurb: book.blurb,
+                release_date: book.release_date,
+                notified: book.notified,
+                price_drop: book.price_drop,
+                author: JSON.stringify(author),
+                update_at: book.update_at,
+                work_id: book.work_id,
+                isbn: book.isbn,
+                isbn13: book.isbn13,
+                text_reviews_count: book.text_reviews_count,
+                title: book.title,
+                title_without_name: book.title_without_name,
+                image_url: book.image_url,
+                small_img: book.small_img,
+                lrg_img: book.lrg_img,
+                link: book.link,
+                num_pages: book.num_pages,
+                format: book.format,
+                edition_info: book.edition_info,
+                publisher: book.publisher,
+                date: book.date,
+                avg_rating: book.avg_rating,
+                ratings_count: book.ratings_count,
+                yearPublished: book.yearPublished
+            })
+    },
+
     getBuzzlistByUser: function (user) {
         buzzlist.find({ user: user }, function (err, post) {
             if (err) return next(err);
@@ -398,5 +517,3 @@ var _this = module.exports = {
     }
 
 }
-
-//currently not removing from watch table whjen you click again
