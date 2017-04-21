@@ -142,7 +142,7 @@ router.post('/signupgoodreads', function (req, res) {
         token = jwt.encode(user, config.secret);
         if (err) return res.json({ success: true, token: 'JWT ' + token });
         if (lists) {
-          helper.getEverything(lists, res, token)
+          helper.getEverything(lists, res, token, user._id)
         }
         else {
           res.json({ success: true, token: 'JWT ' + token });

@@ -2,7 +2,9 @@ var mongoose = require('mongoose')
 
 var BookNotifications = new mongoose.Schema({
     book_id : Number,
-    type: String
+    type: String,
+    message: String,
+    read: Boolean
 });
 
 var NotificationsSchema = new mongoose.Schema({

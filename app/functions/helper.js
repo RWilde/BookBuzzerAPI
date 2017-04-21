@@ -283,7 +283,7 @@ var _this = module.exports = {
         });
     },
 
-    getEverything: function (lists,res, token) {
+    getEverything: function (lists, res, token, id) {
         var work_ids = []
         var author_ids = []
         for (var i = 0; i < lists.length; i++) {
@@ -300,16 +300,15 @@ var _this = module.exports = {
                     author_ids.push(books[t].author[m])
                 }
             }
-                console.log("hi "+author_ids)
-
-            // console.log("helloooo" + author_ids);
             Author.find({ goodreads_id: { $in: author_ids } }, function (err, author) {
                 if (err) console.log("err" + err)
                 console.log("here")
-                res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author) });
+                watch.find({ user: id }, function (err, watched) {
+                    res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author), "watched": JSON.stringify(watched) });
+                })
             })
         })
-       // res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists) });
+        // res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists) });
     },
 
     createBookObjectForJson: function (book, author) {
@@ -514,6 +513,15 @@ var _this = module.exports = {
             });
 
         });
+    },
+
+    CreateNotificationObject: function(n)
+    {
+        return new Notification(
+            {
+                
+            }
+        )
     }
 
 }
