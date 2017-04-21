@@ -5,6 +5,7 @@ var Author = require('../models/authors'); // get the mongoose model
 var Book = require('../models/books'); // get the mongoose model
 var buzzlist = require('../models/buzzlist'); // get the mongoose model
 var watch = require('../models/watch'); // get the mongoose model
+var Notifications = require('../models/notifications'); // get the mongoose model
 
 var _this = module.exports = {
 
@@ -515,13 +516,11 @@ var _this = module.exports = {
         });
     },
 
-    CreateNotificationObject: function(n)
-    {
-        return new Notification(
-            {
-                
-            }
-        )
+    CreateNotificationObject: function (id, array) {
+        return new Notifications({
+                book_list: array,
+                user: id
+            })
     }
 
 }

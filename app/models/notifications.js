@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
 
-var BookNotifications = new mongoose.Schema({
+var NotificationList = new mongoose.Schema({
     book_id : Number,
     type: String,
     message: String,
@@ -8,7 +8,7 @@ var BookNotifications = new mongoose.Schema({
 });
 
 var NotificationsSchema = new mongoose.Schema({
-    book_list : [{books: [BookNotifications]}],
+    book_list : [NotificationList],
     user : [{type: mongoose.Schema.Types.ObjectId, ref : 'User'}]
 });
 

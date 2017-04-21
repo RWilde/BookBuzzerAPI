@@ -15,6 +15,7 @@ var bookRoute   = require('./app/routes/book');
 var authorRoute = require('./app/routes/author');
 var buzzRoute   = require('./app/routes/buzzlist');
 var watchRoute   = require('./app/routes/watch');
+var notificationRoute   = require('./app/routes/notifications');
 
 var port 	      = process.env.PORT || 8081;
 
@@ -39,6 +40,8 @@ app.use('/api/books', bookRoute);
 app.use('/api/authors', authorRoute);
 app.use('/api/buzzlist', buzzRoute);
 app.use('/api/watch', watchRoute);
+app.use('/api/notification', notificationRoute);
+
 
 // Start the server
 app.listen(port);

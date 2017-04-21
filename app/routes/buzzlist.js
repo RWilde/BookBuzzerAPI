@@ -107,7 +107,7 @@ router.post('/shelfimport', passport.authenticate('jwt', { session: false }), fu
           }
           else {
             console.log("not found");
-            list_post.update({'user': decoded._id, 'list_name' :name }, { $push: { 'book_list': bookObjectIdArray } }, function (err, data) {
+            list_post.update({ 'user': decoded._id, 'list_name': name }, { $push: { 'book_list': bookObjectIdArray } }, function (err, data) {
               if (err) return res.status(403).send({ success: false, msg: 'error updating list' });
               res.json({ success: true })
             })
