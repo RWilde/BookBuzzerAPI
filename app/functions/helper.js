@@ -135,6 +135,32 @@ var _this = module.exports = {
         });
     },
 
+        returnNewBookFromJSON: function (req, objectId) {
+        return new Book({
+            _id: objectId,
+            name: req.title,
+            blurb: req.description,
+            release_date: req.date,
+            notified: false,
+            price_drop: false,
+            work_id: req.id,
+            isbn: req.isbn,
+            isbn13: req.isbn13,
+            text_reviews_count: req.textReviewsCount,
+            title: req.title,
+            title_without_name: req.title_without_series,
+            image_url: req.img_url,
+            small_img: req.sml_img_url,
+            link: req.link,
+            format: req.format,
+            edition_info: req.edition,
+            publisher: req.publisher,
+            avg_rating: req.average_rating,
+            ratings_count: req.ratingsCount,
+            yearPublished: req.yearPublished
+        });
+    },
+
     returnEmptyBuzzListObject: function (req, token) {
         return new buzzlist({
             list_name: req.body.list_name,
@@ -383,7 +409,7 @@ var _this = module.exports = {
 
     findBookForBuzzlist: function (book, list) {
         //var work_id = parseInt(book.work_id);
-        Book.findOne({ work_id: book.work_id }, function (err, book_post) {
+        Book.findOne({ work_id: book.goodreadsId }, function (err, book_post) {
             if (err) return res.status(403).send({ success: false, msg: 'problem finding book' });
 
             //book doesnt exist, creates new book/author and adds to list

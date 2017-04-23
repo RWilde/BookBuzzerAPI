@@ -40,22 +40,94 @@ router.post('/newbook', passport.authenticate('jwt', { session: false }), functi
   var token = helper.getToken(req.headers);
   var decoded = jwt.decode(token, config.secret);
 
+  console.log(req.body)
+  var book = req.body;
+  var listName = req.body.list_name
+
+  var bookId = helper.generateObjectId();
+  var newBook = helper.returnNewBookFromJSON(book, bookId)
+  var authorArray = []
+  for (var authorBook in book.authors) {
+    authorId = helper.generateObjectId();
+    newAuthor = helper.returnNewAuthorObjectFromJson(book.authors[authorBook], authorId);
+    authorArray.push(newAuthor);
+    newBook.author.push(book.authors[authorBook].id);
+  }
+
+  console.log(newBook);
+
+  // User.findOne({ _id: decoded._id }, function (err, data) {
+  //   if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
+  //   if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
+
+  //   list = helper.returnEmptyBuzzListObject(req, decoded._id);
+  //   Buzzlist.findOne({ user: decoded._id, list_name: req.body.list_name }, function (err, list_post) {
+  //     if (err) return res.status(403).send({ success: false, msg: 'error with finding list' });
+
+  //     if (!list_post) {
+  //       list.save(function (error, new_list_data) {
+  //         helper.saveToBooklist(new_list_data, req, res);
+  //       })
+  //     }
+  //     else helper.saveToBooklist(list_post, req, res);
+  //   });
+  // });
+
   User.findOne({ _id: decoded._id }, function (err, data) {
     if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
     if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-
-    list = helper.returnEmptyBuzzListObject(req, decoded._id);
-    Buzzlist.findOne({ user: decoded._id, list_name: req.body.list_name }, function (err, list_post) {
+    Buzzlist.findOne({ user: decoded._id, list_name: listName }, function (err, list_post) {
       if (err) return res.status(403).send({ success: false, msg: 'error with finding list' });
-
-      if (!list_post) {
-        list.save(function (error, new_list_data) {
-          helper.saveToBooklist(new_list_data, req, res);
+      Author.collection.insertMany(authorArray, { continueOnError: true, ordered: false, safe: true }, function (err, mongooseDocuments) {
+        if (err) console.log("99" + err);
+        Book.find({ work_id: newBook.work_id }, function (err, result) {
+          if (!result) {
+            Book.collection.insert(newBook, function (err, mongooseDocuments) {
+              if (err) console.log("101" + err);
+              if (list_post == null) {
+                console.log("list found");
+                var bookArray = [];
+                bookArray.push(bookId)
+                list = helper.returnBuzzListObjectFromJson(name, bookArray, decoded._id);
+                list.save(function (error, new_list_data) {
+                  if (err) return res.status(403).send({ success: false, msg: 'error saving list' });
+                  res.json({ success: true })
+                })
+              }
+              else {
+                console.log("not found");
+                list_post.update({ 'user': decoded._id, 'list_name': name }, { $push: { 'book_list': bookId } }, function (err, data) {
+                  if (err) return res.status(403).send({ success: false, msg: 'error updating list' });
+                  res.json({ success: true })
+                })
+              }
+            });
+          }
+          else {
+            if (list_post == null) {
+              console.log("list found");
+              var bookArray = [];
+              bookArray.push(mongooseDocuments._id)
+              list = helper.returnBuzzListObjectFromJson(name, bookArray, decoded._id);
+              list.save(function (error, new_list_data) {
+                if (err) return res.status(403).send({ success: false, msg: 'error saving list' });
+                res.json({ success: true })
+              })
+            }
+            else {
+              console.log("not found");
+              list_post.update({ 'user': decoded._id, 'list_name': name }, { $push: { 'book_list': mongooseDocuments._id } }, function (err, data) {
+                if (err) return res.status(403).send({ success: false, msg: 'error updating list' });
+                res.json({ success: true })
+              })
+            }
+          }
         })
-      }
-      else helper.saveToBooklist(list_post, req, res);
-    });
+      });
+    })
+
   });
+
 });
 
 //post new book to buzzlist
@@ -67,6 +139,7 @@ router.post('/shelfimport', passport.authenticate('jwt', { session: false }), fu
   var bookArray = [];
   var name;
   var shelves = req.body;
+
   for (var shelfName in shelves) {
     name = shelfName;
     var shelf = shelves[shelfName];
