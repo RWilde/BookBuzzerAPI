@@ -8,10 +8,9 @@ var check_interval = 60000;
 
 var _this = module.exports = {
 
-    checkPrice: function (res, asin) {
-        //       1619630621
+    checkPrice: function (res, isbn) {
         var amzn_url = 'http://www.amazon.co.uk/dp/';
-        amzn_url += asin;
+        amzn_url += isbn;
 
         request(amzn_url, function (error, response, body) {
             if (response.statusCode == 200) {
@@ -45,12 +44,10 @@ var _this = module.exports = {
                     jsonArray.push(obj);
                 }
                 res.json({ jsonArray })
-
             }
             else {
                 console.log("Uh oh. There was an error. " + amzn_url + " " + response.statusCode);
             }
         });
-
     }
 }

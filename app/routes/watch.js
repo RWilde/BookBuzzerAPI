@@ -28,7 +28,7 @@ router.get('/book', passport.authenticate('jwt', { session: false }), function (
             books.push(bookList.book_id);
         }
 
-        model.find({ '_id': { $in: [books] } }, function (err, docs) {
+        book.find({ 'work_id': { $in: [books] } }, function (err, docs) {
             if (err) return next(err);
             return docs;
         });
@@ -56,24 +56,18 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
                             var found = false;
                             var deleted = false;
                             for (var i = 0; i < list_post.book_list.length; i++) {
-                                console.log("56");
-
                                 if (list_post.book_list[i] == req.body.id) {
                                     //remove book from watchlist
-                                    console.log("60");
                                     helper.removeBookFromWatchList(decoded, req.body.id, res)
                                     found = true;
                                     deleted = true;
                                     break;
                                 }
                             }
-                            console.log("66" + found);
-
                             if (found == false) {
                                 var book_id = { book_id: list_post._id };
                                 Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
                                     if (err) console.log("4" + err);
-                                    console.log("70");
                                     helper.updateWatch(req.body.id, decoded._id, res);
                                 })
                             }
@@ -82,8 +76,6 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
                             }
                         }
                         else {
-                            console.log("78");
-
                             buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                             buzz.book_list.push(req.body.id);
                             buzz.save(function (error, buzzlist_data) {
@@ -94,8 +86,6 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
                     })
                 }
                 else {
-                    console.log("90");
-
                     var authorObjectIdArray = [];
                     var authorArray = []
                     bookId = helper.generateObjectId();
@@ -129,33 +119,22 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
                                             found = true;
                                             deleted = true;
                                             break;
-                                            console.log("123");
-
                                         }
                                     }
                                     if (found === false) {
-                                        console.log("128");
-
                                         var book_id = { book_id: list_post._id };
                                         Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
                                             if (err) console.log("4" + err);
-                                            console.log("131");
-
                                             helper.updateWatch(req.body.id, decoded._id, res);
                                         })
-
                                     }
                                     else if (deleted == false) {
                                         helper.updateWatch(req.body.id, decoded._id, res);
                                     }
-
                                 }
                                 else {
                                     buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                                     buzz.book_list.push(req.body.id);
-                                    console.log(buzz)
-                                    console.log("145");
-
                                     buzz.save(function (error, buzzlist_data) {
                                         if (error) console.log("19" + error);
                                         helper.updateWatch(req.body.id, decoded._id, res);
@@ -240,14 +219,14 @@ router.delete('/book/:id', function (req, res) {
 
 });
 
-//delete book
+//price checker
 router.post('/price', passport.authenticate('jwt', { session: false }), function (req, res) {
     var token = helper.getToken(req.headers);
     var decoded = jwt.decode(token, config.secret);
     var bookId = req.params.id;
 
     var isbn = req.body.isbn
-console.log(isbn)
+
     var jsonArray = []
     User.findOne({ _id: decoded._id }, function (err, data) {
         //finds user

@@ -11,7 +11,6 @@ var Books = new mongoose.Schema({
     work_id: {type: Number, 
         unique: true,
         required: true,},
-
     isbn: String,
     isbn13: String,
     text_reviews_count: Number,

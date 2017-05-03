@@ -45,7 +45,6 @@ router.post('/', passport.authenticate('jwt', { session: false }), function (req
         console.log(entry)
         notificationArray.push(entry);
     }
-    //notificationObject.book_list = notificationArray;
     var notificationObject = helper.CreateNotificationObject(decoded._id, notificationArray)
 
     User.findOne({ _id: decoded._id }, function (err, data) {
@@ -61,36 +60,35 @@ router.post('/', passport.authenticate('jwt', { session: false }), function (req
                 })
             }
         });
-
     })
 });
 
-//update book when read
-router.put('/id=:id&type=:type', passport.authenticate('jwt', { session: false }), function (req, res) {
-    var token = helper.getToken(req.headers);
-    var decoded = jwt.decode(token, config.secret);
+// //update book when read
+// router.put('/id=:id&type=:type', passport.authenticate('jwt', { session: false }), function (req, res) {
+//     var token = helper.getToken(req.headers);
+//     var decoded = jwt.decode(token, config.secret);
 
-    var n = req.body;
+//     var n = req.body;
 
-    User.findOne({ _id: decoded._id }, function (err, data) {
-        if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
-        if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-        //find out how to search nested model
+//     User.findOne({ _id: decoded._id }, function (err, data) {
+//         if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
+//         if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
+//         //find out how to search nested model
 
-        var entry = new Object(
-            {
-                book_id: n.id,
-                type: n.type,
-                message: n.message,
-                read: n.read
-            })
+//         var entry = new Object(
+//             {
+//                 book_id: n.id,
+//                 type: n.type,
+//                 message: n.message,
+//                 read: n.read
+//             })
 
-        Notifications.findByIdAndUpdate({ _id: decoded._id }, { $push: { 'book_list': entry } }, function (err, result) {
-            if (err) return res.json({ success: false, error: err })
-            res.json({ success: true })
-        });
-    })
-});
+//         Notifications.findByIdAndUpdate({ _id: decoded._id }, { $push: { 'book_list': entry } }, function (err, result) {
+//             if (err) return res.json({ success: false, error: err })
+//             res.json({ success: true })
+//         });
+//     })
+// });
 
 //update book when read
 router.put('/read/id=:id&type=:type', passport.authenticate('jwt', { session: false }), function (req, res) {
@@ -105,7 +103,7 @@ router.put('/read/id=:id&type=:type', passport.authenticate('jwt', { session: fa
         if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
         //find out how to search nested model
 
-        Notifications.findByIdAndUpdate({ _id: decoded._id, 'book_list.book_id': req.params.id, 'book_list.type' : type  }, { $push: { 'book_list.read': true } }, function (err, result) {
+        Notifications.findByIdAndUpdate({ user: decoded._id, 'book_list.book_id': req.params.id, 'book_list.type' : type  }, { $push: { 'book_list.read': true } }, function (err, result) {
             if (err) return res.json({ success: false, error: err })
             res.json({ success: true })
         });
@@ -129,7 +127,7 @@ router.delete('/id=:id&type=:type', passport.authenticate('jwt', { session: fals
             for (var i in booklist) {
                 var book = booklist[i]
                 if (book.book_id == bookId && book.type == type) {
-                    Notificiat.findByIdAndUpdate(post._id, {
+                    Notifications.findByIdAndUpdate(post._id, {
                         '$pull': {
                             'book_list': { '_id': new ObjectId(book._id) }
                         }

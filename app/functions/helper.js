@@ -482,24 +482,23 @@ var _this = module.exports = {
         });
     },
 
-    deleteBuzzlist: function (id, listId, res) {
+    deleteBuzzlist: function (id, name, res) {
         User.findOne({ _id: id }, function (err, data) {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
 
-            buzzlist.remove({ _id: listId }, function (err) {
+            buzzlist.remove({ list_name: name, user : id }, function (err) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to delete list' });
                 res.json({ success: true, msg: 'Buzzlist successfully deleted' });
             });
         });
     },
 
-    updateBuzzlistName: function (id, listId, name, res) {
+    updateBuzzlistName: function (id, name, new_name, res) {
         User.findOne({ _id: id }, function (err, data) {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-            console.log(listId)
-            buzzlist.update({ _id: listId }, { list_name: name }, function (err) {
+            buzzlist.findOneAndUpdate({ user: id, list_name : name }, { list_name: new_name }, function (err, doc) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to change list name' });
                 res.json({ success: true, msg: 'book name successfully changed' });
             });
@@ -536,7 +535,6 @@ var _this = module.exports = {
             watch.findOneAndUpdate({ user: decoded._id }, { $pull: { "book_list": bookId } }, function (err) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to delete list + ' + err });
                 res.json({ success: true });
-
             });
 
         });
