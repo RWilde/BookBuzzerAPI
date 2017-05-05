@@ -310,7 +310,7 @@ var _this = module.exports = {
         });
     },
 
-    getEverything: function (lists, res, token, id) {
+    getEverything: function (lists, res, token, user) {
         var work_ids = []
         var author_ids = []
         for (var i = 0; i < lists.length; i++) {
@@ -330,9 +330,9 @@ var _this = module.exports = {
             Author.find({ goodreads_id: { $in: author_ids } }, function (err, author) {
                 if (err) console.log("err" + err)
                 console.log("here")
-                watch.find({ user: id }, function (err, watched) {
-                    Notifications.find({ user: id }, function (err, notifications) {
-                        res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author), "watched": JSON.stringify(watched), "notifications": JSON.stringify(notifications) });
+                watch.find({ user: user._id }, function (err, watched) {
+                    Notifications.find({ user: user._id }, function (err, notifications) {
+                        res.json({ success: true, token: 'JWT ' + token, "goodreadsId": user.goodreads_id, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author), "watched": JSON.stringify(watched), "notifications": JSON.stringify(notifications) });
 
                     })
                 })

@@ -47,7 +47,7 @@ router.post('/authenticate', function (req, res) {
             token = jwt.encode(user, config.secret);
             if (err) return res.json({ success: true, token: 'JWT ' + token });
             if (lists) {
-              helper.getEverything(lists, res, token, user._id)
+              helper.getEverything(lists, res, token, user)
             }
             else {
               res.json({ success: true, token: 'JWT ' + token });
@@ -105,9 +105,8 @@ router.put('/updategoodreadsId', passport.authenticate('jwt', { session: false }
   var token = helper.getToken(req.headers);
   var decoded = jwt.decode(token, config.secret);
   User.findOneAndUpdate({ _id: decoded._id }, { $set: { goodreads_id: req.body.goodreads_id } }, function (err, doc) {
-    if (err) {
-      return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
-    }
+    if (err) return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
+    res.json({ success: true});
   })
 });
 
@@ -157,7 +156,7 @@ router.post('/signupgoodreads', function (req, res) {
         token = jwt.encode(user, config.secret);
         if (err) return res.json({ success: true, token: 'JWT ' + token });
         if (lists) {
-          helper.getEverything(lists, res, token, user._id)
+          helper.getEverything(lists, res, token, user)
         }
         else {
           res.json({ success: true, token: 'JWT ' + token });
@@ -196,7 +195,7 @@ router.get('/sync', passport.authenticate('jwt', { session: false }), function (
       token = jwt.encode(user, config.secret);
       if (err) return res.json({ success: true, token: 'JWT ' + token });
       if (lists) {
-        helper.getEverything(lists, res, token, user._id)
+        helper.getEverything(lists, res, token, user)
       }
       else {
         res.json({ success: true, token: 'JWT ' + token });
