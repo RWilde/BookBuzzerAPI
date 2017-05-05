@@ -48,7 +48,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), function (req
     var notificationObject = helper.CreateNotificationObject(decoded._id, notificationArray)
 
     User.findOne({ _id: decoded._id }, function (err, data) {
-        Notifications.findByIdAndUpdate({ _id: decoded._id }, { $push: { 'book_list': notificationArray } }, function (err, result) {
+        Notifications.findByIdAndUpdate({ user: decoded._id }, { $push: { 'book_list': notificationArray } }, function (err, result) {
             if (err) return res.json({ success: false, error: err })
             if (result) res.json({ success: true })
             else {

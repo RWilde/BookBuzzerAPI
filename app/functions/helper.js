@@ -135,7 +135,7 @@ var _this = module.exports = {
         });
     },
 
-        returnNewBookFromJSON: function (req, objectId) {
+    returnNewBookFromJSON: function (req, objectId) {
         return new Book({
             _id: objectId,
             name: req.title,
@@ -331,7 +331,10 @@ var _this = module.exports = {
                 if (err) console.log("err" + err)
                 console.log("here")
                 watch.find({ user: id }, function (err, watched) {
-                    res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author), "watched": JSON.stringify(watched) });
+                    Notifications.find({ user: id }, function (err, notifications) {
+                        res.json({ success: true, token: 'JWT ' + token, "list": JSON.stringify(lists), "books": JSON.stringify(books), "authors": JSON.stringify(author), "watched": JSON.stringify(watched), "notifications": JSON.stringify(notifications) });
+
+                    })
                 })
             })
         })
@@ -487,7 +490,7 @@ var _this = module.exports = {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
 
-            buzzlist.remove({ list_name: name, user : id }, function (err) {
+            buzzlist.remove({ list_name: name, user: id }, function (err) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to delete list' });
                 res.json({ success: true, msg: 'Buzzlist successfully deleted' });
             });
@@ -498,7 +501,7 @@ var _this = module.exports = {
         User.findOne({ _id: id }, function (err, data) {
             if (err) return res.status(403).send({ success: false, msg: 'error occured finding user' });
             if (!data) return res.status(403).send({ success: false, msg: 'no user found' });
-            buzzlist.findOneAndUpdate({ user: id, list_name : name }, { list_name: new_name }, function (err, doc) {
+            buzzlist.findOneAndUpdate({ user: id, list_name: name }, { list_name: new_name }, function (err, doc) {
                 if (err) return res.status(403).send({ success: false, msg: 'unable to change list name' });
                 res.json({ success: true, msg: 'book name successfully changed' });
             });
@@ -517,8 +520,7 @@ var _this = module.exports = {
     },
 
     updateWatch: function (book, id, res) {
-        console.log("here")
-        watch.update({ _id: id }, { $push: { 'book_list': book } }, function (err, data) {
+        watch.update({ user: id }, { $push: { 'book_list': book } }, function (err, data) {
             if (err) console.log("6" + err)
             console.log(data)
             res.json({ success: true });
@@ -542,9 +544,9 @@ var _this = module.exports = {
 
     CreateNotificationObject: function (id, array) {
         return new Notifications({
-                book_list: array,
-                user: id
-            })
+            book_list: array,
+            user: id
+        })
     }
 
 }

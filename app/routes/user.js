@@ -17,6 +17,7 @@ router.post('/signup', function (req, res) {
   } else {
     var newUser = new User({
       name: req.body.name,
+      email: req.body.email,
       password: req.body.password
     });
     // save the user
@@ -32,7 +33,7 @@ router.post('/signup', function (req, res) {
 
 // route to authenticate a user (POST http://localhost:8080/api/authenticate)
 router.post('/authenticate', function (req, res) {
-  User.findOne({name: req.body.name}, function (err, user) {
+  User.findOne({ email: req.body.email }, function (err, user) {
     if (err) throw err;
     if (!user) {
       console.log("user not found")
@@ -41,10 +42,17 @@ router.post('/authenticate', function (req, res) {
       // check if password matches
       user.comparePassword(req.body.password, function (err, isMatch) {
         if (isMatch && !err) {
-          // if user is found and password is right create a token
-          var token = jwt.encode(user, config.secret);
           // return the information including token as JSON
-          res.json({ success: true, token: 'JWT ' + token });
+          Buzzlist.find({ user: user._id }, function (err, lists) {
+            token = jwt.encode(user, config.secret);
+            if (err) return res.json({ success: true, token: 'JWT ' + token });
+            if (lists) {
+              helper.getEverything(lists, res, token, user._id)
+            }
+            else {
+              res.json({ success: true, token: 'JWT ' + token });
+            }
+          });
         } else {
           return res.status(403).send({ success: false, msg: 'Authentication failed. Wrong password.' });
         }
@@ -78,14 +86,14 @@ router.get('/memberinfo', passport.authenticate('jwt', { session: false }), func
   if (token) {
     var decoded = jwt.decode(token, config.secret);
     User.findOne({
-      name: decoded.name
+      email: decoded.email
     }, function (err, user) {
       if (err) throw err;
 
       if (!user) {
         return res.status(403).send({ success: false, msg: 'Authentication failed. User not found.' });
       } else {
-        res.json({ success: true, msg: 'Welcome in the member area ' + user.name + '!' });
+        res.json({ success: true, msg: 'Welcome in the member area ' + user.email + '!' });
       }
     });
   } else {
@@ -95,21 +103,31 @@ router.get('/memberinfo', passport.authenticate('jwt', { session: false }), func
 
 router.put('/updategoodreadsId', passport.authenticate('jwt', { session: false }), function (req, res) {
   var token = helper.getToken(req.headers);
-  if (token) {
-    var decoded = jwt.decode(token, config.secret);
-    User.findOneAndUpdate({ name: decoded.name }, { $set: { goodreads_id: req.body.goodreads_id } }, function (err, doc) {
-      if (err) {
-        return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
-      }
+  var decoded = jwt.decode(token, config.secret);
+  User.findOneAndUpdate({ _id: decoded._id }, { $set: { goodreads_id: req.body.goodreads_id } }, function (err, doc) {
+    if (err) {
+      return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
+    }
+  })
+});
+
+router.put('/updatename', passport.authenticate('jwt', { session: false }), function (req, res) {
+  var token = helper.getToken(req.headers);
+  var decoded = jwt.decode(token, config.secret);
+  User.findOneAndUpdate({ _id: decoded._id }, { $set: { name: req.body.name } }, function (err, doc) {
+    if (err) return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
+    User.findOne({ _id: decoded._id }, function (err, doc) {
+      token = jwt.encode(doc, config.secret);
+      res.json({ success: true, token: 'JWT ' + token });
     })
-  }
-})
+  })
+});
 
 router.put('/updatefacebookId', passport.authenticate('jwt', { session: false }), function (req, res) {
   var token = helper.getToken(req.headers);
   if (token) {
     var decoded = jwt.decode(token, config.secret);
-    User.findOneAndUpdate({ name: decoded.name }, { $set: { facebook_id: req.body.facebook_id } }, function (err, doc) {
+    User.findOneAndUpdate({ email: decoded.email }, { $set: { facebook_id: req.body.facebook_id } }, function (err, doc) {
       if (err) {
         return res.status(403).send({ success: false, msg: 'error saving goodreads_id' })
       }
@@ -144,14 +162,13 @@ router.post('/signupgoodreads', function (req, res) {
         else {
           res.json({ success: true, token: 'JWT ' + token });
         }
-
       });
     }
   });
 }),
 
   router.post('/signupfacebook', function (req, res) {
-    if (!req.body.name || !req.body.password) {
+    if (!req.body.email || !req.body.password) {
       res.json({ success: false, msg: 'Please pass name and password.' });
     } else {
       var newUser = new User({
@@ -168,5 +185,24 @@ router.post('/signupgoodreads', function (req, res) {
       });
     }
   });
+
+router.get('/sync', passport.authenticate('jwt', { session: false }), function (req, res) {
+  var token = helper.getToken(req.headers);
+  var decoded = jwt.decode(token, config.secret);
+
+  User.findOne({ _id: decoded._id }, function (err, isMatch) {
+    // return the information including token as JSON
+    Buzzlist.find({ user: user._id }, function (err, lists) {
+      token = jwt.encode(user, config.secret);
+      if (err) return res.json({ success: true, token: 'JWT ' + token });
+      if (lists) {
+        helper.getEverything(lists, res, token, user._id)
+      }
+      else {
+        res.json({ success: true, token: 'JWT ' + token });
+      }
+    });
+  })
+});
 
 module.exports = router;

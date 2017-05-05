@@ -44,19 +44,23 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
 
     if (!token) return res.status(403).send({ success: false, msg: 'No token provided.' });
     watch.findOne({ user: decoded._id }, function (err, watch_result) {
+
         if (err) console.log("1" + err);
         if (watch_result != null) {
             book.findOne({ work_id: req.body.id }, function (err, book_post) {
+                                        console.log("he")
+
                 if (err) console.log("2" + err)
                 if (book_post != null) {
+                    console.log("hi " + req.body.list_name)
                     Buzzlist.findOne({ user: decoded._id, list_name: req.body.list_name }, function (err, list_post) {
+                        console.log("here")
                         if (err) console.log("3" + err)
-
                         if (list_post != null) {
                             var found = false;
                             var deleted = false;
-                            for (var i = 0; i < list_post.book_list.length; i++) {
-                                if (list_post.book_list[i] == req.body.id) {
+                            for (var i = 0; i < watch_result.book_list.length; i++) {
+                                if (watch_result.book_list[i] == req.body.id) {
                                     //remove book from watchlist
                                     helper.removeBookFromWatchList(decoded, req.body.id, res)
                                     found = true;
@@ -68,14 +72,17 @@ router.post('/book', passport.authenticate('jwt', { session: false }), function 
                                 var book_id = { book_id: list_post._id };
                                 Buzzlist.update({ _id: list_post._id }, { $push: { 'book_list': req.body.id } }, function (err, data) {
                                     if (err) console.log("4" + err);
+                                    console.log("here!!");
                                     helper.updateWatch(req.body.id, decoded._id, res);
                                 })
                             }
                             else if (deleted == false) {
+                                                                    console.log("here!");
                                 helper.updateWatch(req.body.id, decoded._id, res);
                             }
                         }
                         else {
+                            console.log("eswfjsdlfkj")
                             buzz = helper.returnBuzzListObjectFromJson(req.body.list_name, req.body.id, decoded._id)
                             buzz.book_list.push(req.body.id);
                             buzz.save(function (error, buzzlist_data) {
